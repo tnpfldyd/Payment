@@ -15,3 +15,7 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.email
+    
+class Balance(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    balance = models.IntegerField(default=0, blank=True)

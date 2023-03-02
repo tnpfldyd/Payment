@@ -35,7 +35,8 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     #만든 앱
-    'accounts',
+    'accounts', # 회원
+    'transactions', # 거래 및 쿠폰 관리
     #drf
     'rest_framework',
     'rest_framework.authtoken',
