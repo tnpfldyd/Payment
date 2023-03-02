@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'dj_rest_auth',
     'allauth',
+    'allauth.account',
     # 초기 설정
     'django.contrib.admin',
     'django.contrib.auth',
@@ -144,6 +145,7 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated', # 로그인한 유저만 사용할 수 있도록
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.SessionAuthentication', # localhost:8000에서 테스트시 로그인 유지를 위함
         'dj_rest_auth.jwt_auth.JWTCookieAuthentication', # JWT 토큰 기본 발급
     ),
 }

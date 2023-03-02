@@ -13,12 +13,16 @@ class PaymentMethod(models.Model):
     payment_type = models.CharField(max_length=20, choices=PAYMENT_METHOD_TYPES)
 
 class Card(models.Model):
-    payment_method = models.OneToOneField(PaymentMethod, on_delete=models.CASCADE)
+    payment_method = models.OneToOneField(PaymentMethod, on_delete=models.CASCADE, null=True)
+    card_company = models.CharField(max_length=50)
     card_number = models.CharField(max_length=16)
-    expiry_date = models.DateField()
+    expiry_month = models.PositiveIntegerField()
+    expiry_year = models.PositiveIntegerField()
+    cvc = models.PositiveIntegerField()
+
 
 class Account(models.Model):
-    payment_method = models.OneToOneField(PaymentMethod, on_delete=models.CASCADE)
+    payment_method = models.OneToOneField(PaymentMethod, on_delete=models.CASCADE, null=True)
     bank_name = models.CharField(max_length=50)
     account_number = models.CharField(max_length=20)
 
@@ -49,7 +53,6 @@ class Transaction(models.Model):
         (TRANSACTION_TYPE_CHARGE, 'Charge'),
         (TRANSACTION_TYPE_PAYMENT, 'Payment'),
     ]
-    
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     payment_method = models.ForeignKey(PaymentMethod, on_delete=models.SET_NULL, null=True, blank=True)
     coupon = models.ForeignKey(Coupon, on_delete=models.SET_NULL, null=True, blank=True)
