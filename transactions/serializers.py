@@ -38,8 +38,13 @@ class UserCouponSerializer(serializers.ModelSerializer):
 class TransactionSerializer(serializers.ModelSerializer):
     payment_method = PaymentMethodSerializer(read_only=True)
     coupon = CouponSerializer(read_only=True)
-    balance = BalanceSerializer(read_only=True)
+    balance = serializers.SerializerMethodField()
 
     class Meta:
         model = Transaction
         fields = '__all__'
+
+    def get_balance(self, obj):
+        user = obj.user
+        balance = user.balance
+        return BalanceSerializer(balance).data

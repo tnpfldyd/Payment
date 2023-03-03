@@ -1,8 +1,9 @@
 from django.db import models
 from django.conf import settings
+from django.utils import timezone
 # Create your models here.
 
-class PaymentMethod(models.Model):
+class PaymentMethod(models.Model): # 
     CARD = 'CARD'
     ACCOUNT = 'ACCOUNT'
     PAYMENT_METHOD_TYPES = [
@@ -39,6 +40,17 @@ class Coupon(models.Model):
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
     is_active = models.BooleanField(default=True)
+
+    def is_valid(self):
+        now = timezone.now()
+        return self.is_active and self.start_date <= now <= self.end_date
+    
+    def get_discounted_amount(self, amount):
+        if self.discount_type == self.DISCOUNT_TYPE_PERCENTAGE:
+            return amount - amount * self.discount_value
+        else:
+            return amount - self.discount_value
+
 
 class UserCoupon(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
