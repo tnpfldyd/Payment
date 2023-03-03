@@ -1,6 +1,6 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
-
+from django.db import transaction
 from .models import *
 from .serializers import *
 from datetime import datetime
@@ -12,11 +12,12 @@ class PaymentMethodViewSet(viewsets.ModelViewSet):
         user = self.request.user
         return PaymentMethod.objects.filter(user=user)
 
+    @transaction.atomic # 두개의 로직을 통과 시켜야 저장할 수 있도록 추가. 둘중의 하나라도 is_valid가 통과가 안되면 둘 다 저장하지 않음.
     def create(self, request, *args, **kwargs):
         payment_method_data = {'user': request.user.id, 'payment_type': request.data.get('payment_method_type')}
         payment_method_serializer = PaymentMethodSerializer(data=payment_method_data)
         payment_method_serializer.is_valid(raise_exception=True)
-        payment_method = payment_method_serializer.save()
+        payment_method = payment_method_serializer.save() # 먼저 결제정보를 생성한 뒤 Card나 Acoount 모델 데이터 생성
         serializer_class = CardSerializer if payment_method.payment_type == 'CARD' else AccountSerializer
         serializer = serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -109,7 +110,7 @@ class TransactionViewSet(viewsets.ViewSet):
             
             user_balance.balance -= use_balance
             actual_amount -= use_balance
-        else: # use_balance란 데이터가 존재하지 않을 시에는 충전이 되도록 구현했습니다..
+        else: # use_balance란 데이터가 존재하지 않을 시에는 충전이 되도록 구현했습니다.
             user_balance.balance += amount
         
         coupon_id = data.get('coupon_id')
@@ -139,7 +140,7 @@ class TransactionViewSet(viewsets.ViewSet):
             if payment.user != user:
                 return Response({'success': False, 'message': '결제 등록한 정보와 불일치 합니다.'}, status=status.HTTP_400_BAD_REQUEST)
         
-        if actual_amount < 0:
+        if actual_amount < 0: # 만약 총 결제하려는 금액이 3000원일때 5천원 쿠폰 사용시 음수 방지 
             actual_amount = 0
 
         if not api_PG(actual_amount, payment_id): # PG 결제가 실패했을 경우
